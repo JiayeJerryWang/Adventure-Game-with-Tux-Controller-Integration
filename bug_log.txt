@@ -1,0 +1,30 @@
+Bug log
+
+Modex:
+1.	Forgot to exchange scroll_y_dim and scroll_x_dim from draw horizontal line for draw vert line, results in the left most picture to be displayed in the right most side.
+2.	Forgot to change scroll_y_dim number to account for status bar height that are added for check point 1.
+
+Text：
+1.	Put p_off inside the if loop, which left p_off unchanged if the condition fails.
+2.	Error in calculating addr for the build buffer, should times 80 but times 320 since it’s for per plane.
+3.	Error in calculating addr, forgot to * 2 for start addr as each character occupies 2 each plane in build buffer.
+
+Photo：
+1.  In the mappint of the palette, initialize palette to 0, and loop through the 128 colors in level 4 to assign color. 
+    However, if not assigned, still use 0 as the condition to determine if a pixel is assigned an index. Did not consider the condition of assigning index 0. 
+    Fixed by initialize palette index to -1.
+2.	The mapping of the palette shift to the right by 2 pixel, fixed by adding -2 to the mapping of the palette index to the pixel
+3.  Error in creating the cmp helper function for qsort, should be b - a but use a - b, which results in incorrect sorting.
+
+TUX_Ioctl driver:
+1.  Declare the led_value which stores the lower 16 bit led value as char, which results in truncated value, fixed by change to int. 
+2.  Did not dereference and cast the pointer to the 32 bit arg when setting the buttons that are pressed.
+3.  Initialize button status to 0x00, which should be 0xFF since they are active low.
+
+Adventure:
+1.  Major problem with the sync of when the button_pressed will be set. The game loop runs much slower than the tux thread. 
+    This is a problem for setting the conditional varible button_pressed. 
+    I set the cv in the game loop, which runs slower. Sometimes it will not be set for cleared fast enough for the tux thread.
+    Solved by clearing the conditional vairble for each run of the game loop and the tux thread. 
+2.  Insure the sync by of the game loop with tux_thread by adding the tick to tux thread. When not sync correctly, the tux thread will respond to the command from tux with significant lags. 
+
